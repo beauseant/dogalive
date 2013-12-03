@@ -36,8 +36,9 @@ class ThreadPing (threading.Thread):
 				self.__resultado [ host ] = 0
 
 
+			identificador = ( ' [%s]: ' % self.__idth )
 			if  self.__log:
-				logging.debug ( mensaje )
+				logging.debug ( identificador + mensaje )
 
 			#marcamos tarea como finalizada:
 			self.__queue.task_done()
