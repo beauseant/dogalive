@@ -30,7 +30,12 @@ def main( queue, log ):
 	for i in range( num_hilos ):
 		Salida.update ( t.getResultados () )
 
+
+	#Aqui debemos llamar a la libreria que se encarga de grabar el log de las operaciones
+	#debemos pasarle, ademas la fecha
+	#hist = grabarDB ( fechaactual)
 	for k,v in Salida.iteritems ():
+		#hist.addMaquina (k ,v)
 		print k
 		print v
 
