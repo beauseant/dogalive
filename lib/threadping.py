@@ -2,7 +2,7 @@ import Queue
 import threading
 import subprocess
 import logging
-
+import socket
 
 
 class ThreadPing (threading.Thread):
@@ -22,21 +22,40 @@ class ThreadPing (threading.Thread):
 
 	def __ping ( self, host ):
 		return ( subprocess.call("ping -c 1 %s" % host, shell=True, stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT) )
+
+	def __getname ( self, ip ):
+		try:
+			salida = socket.gethostbyaddr( ip )[0]
+		except:
+			salida = 0
+
+		return salida
 		
 
 	def run(self):
+
+		estado = []
+
 		while True:
+			estado = []
 			#Recogemos de la cola
-			host = self.__queue.get()
+			host 	= self.__queue.get()
+
+			nombre 	= self.__getname ( host )
+
+			estado.append ( nombre )
+
 			if ( self.__ping ( host ) == 0 ):
 				mensaje = 'el host %s estaba vivo' % ( host )
-				self.__resultado [ host ] = 1
+				estado.append (1)
 			else:
 				mensaje = 'el host %s NO estaba vivo' % ( host )
-				self.__resultado [ host ] = 0
+				estado.append ( 0 )
+
+			self.__resultado [ host ] = estado
 
 
-			identificador = ( ' [%s]: ' % self.__idth )
+			identificador = ( ' [%s]:%s (%s): ' % ( self.__idth , mensaje, nombre ) )
 			if  self.__log:
 				logging.debug ( identificador + mensaje )
 

@@ -30,10 +30,19 @@ def main( queue, log, args ):
 	for i in range( num_hilos ):
 		Salida.update ( t.getResultados () )
 
-	for k,v in Salida.iteritems ():
-		print k
-		print v
+	vivos 	= 0
+	muertos = 0
 
+	for k,v in Salida.iteritems ():
+		if ( v[1] == 1 ):
+			vivos 	+= 1
+		else:
+			muertos += 1
+
+		print 'El host %s (%s) estaba %s' % ( k ,v[0], v[1] )
+
+
+	print 'Lanzados %s hilos. Vivos:%s, muertos %s. Total:%s' % (num_hilos, vivos, muertos, vivos + muertos )
 
 if __name__ == "__main__":
 
