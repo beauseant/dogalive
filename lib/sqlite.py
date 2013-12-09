@@ -4,7 +4,7 @@
 import sqlite3 as lite
 import logging
 import argparse
-import date
+import datetime
 
 
 class SQLite:
@@ -36,7 +36,7 @@ class SQLite:
 			cur.execute("DROP TABLE IF EXISTS hosts")
 			sql_sen = '''CREATE TABLE hosts (
 				id_host INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-				ip VARCHAR(15) NOT NULL, 
+				ip VARCHAR(15) UNIQUE NOT NULL, 
 				name VARCHAR(30))'''
 			cur.execute(sql_sen)
 			self._con.commit()
@@ -56,13 +56,13 @@ class SQLite:
 	def crearTablaEscaneo ( self ):
 		with self._con:  
 			#Creando tabla con la fecha de realizacion de los distintos pings a los hosts
-			#State 0=No responde 1=Activo
+			#Status 0=No responde 1=Activo
 			cur = self._con.cursor()    
-			cur.execute("DROP TABLE IF EXISTS escaneo")
-			sql_sen = '''CREATE TABLE escaneo (
+			cur.execute("DROP TABLE IF EXISTS scan")
+			sql_sen = '''CREATE TABLE scan (
 				id INTEGER NOT NULL, 
 				date INTEGER NOT NULL, 
-				state INT(1) NOT NULL,
+				status INT(1) NOT NULL,
 				PRIMARY KEY (id,date),
 				FOREIGN KEY (id) REFERENCES hosts(id_host),
 				FOREIGN KEY (date) REFERENCES dates(id_date)
@@ -76,13 +76,28 @@ class SQLite:
 		db.crearTablaEscaneo()
 
 
-	'''def insertarHosts( self ):
+	def insertarHosts( self, items ):
 		with self._con:    
 			cur = self._con.cursor()
-			cur.executemany ("INSERT INTO hosts (id_host, name) VALUES (?,?)", item)
-			self._con.commit()'''
-	
+			for item in items:
+				if ( cur.execute ("SELECT name FROM hosts WHERE name == 'loro'") ):
+					cur.executemany ("INSERT INTO hosts VALUES (null,?,?)", item[0])
+			self._con.commit()
 
+	def insertarFecha ( self ):
+		date = datetime.today()
+		with self._con:    
+			cur = self._con.cursor()
+				cur.execute ("INSERT INTO dates VALUES (?)", date)
+			self._con.commit()
+
+	def insertarEscaneo ( self, id_host, id_date, status ):
+		with self._con:    
+			cur = self._con.cursor()
+			cur.execute ("INSERT INTO scan VALUES (?,?,?)", id_host, id_date, status)
+			self._con.commit()
+
+	
 if __name__ == "__main__":
 
 	parser	= argparse.ArgumentParser ( description= '' )
@@ -95,7 +110,11 @@ if __name__ == "__main__":
 
 	db = SQLite ('SQLitePrueba/')
 
-	r = db.crearTablas ( db )
+	hosts = {"charran":"192.168.149.19","loro":"192.168.149.20","piquituerto":"192.168.149.21"}
+
+	db.crearTablas ( db )
+	db.insertarHosts ( hosts )
+	
 	print 'Fin del proceso'
 
 
