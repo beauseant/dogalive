@@ -3,6 +3,7 @@ import time
 import argparse
 import logging
 import lib.threadping
+import datetime
 
 
 def main( queue, log ):
@@ -33,6 +34,7 @@ def main( queue, log ):
 
 	#Aqui debemos llamar a la libreria que se encarga de grabar el log de las operaciones
 	#debemos pasarle, ademas la fecha
+	date = datetime.today()
 	#hist = grabarDB ( fechaactual)
 	for k,v in Salida.iteritems ():
 		#hist.addMaquina (k ,v)
