@@ -4,6 +4,7 @@ import argparse
 import logging
 import lib.threadping
 import datetime
+import lib.grabarDB
 
 
 def main( queue, log ):
@@ -34,17 +35,19 @@ def main( queue, log ):
 
 	#Aqui debemos llamar a la libreria que se encarga de grabar el log de las operaciones
 	#debemos pasarle, ademas la fecha
-	date = datetime.today()
-	#hist = grabarDB ( fechaactual)
-	for k,v in Salida.iteritems ():
-		#hist.addMaquina (k ,v)
-		print k
-		print v
+	dateToday = datetime.date.today()
+	gdb = lib.grabarDB.grabarDB ('SQLitePrueba/', dateToday)
+	id_date = gdb.insertarFecha()
+	for ip,status in Salida.iteritems ():
+		id_host = gdb.insertarHost (ip , 'nombre')
+		gdb.insertarEscaneo(id_host,id_date, status)
+
+	gdb.mostrarHosts()
+	gdb.mostrarFechas()
+	gdb.mostrarEscaneos()
 
 
 if __name__ == "__main__":
-
-
 	log = 0
 	parser    = argparse.ArgumentParser ( description= 'ping con hilos' )
 	parser.add_argument('--d', action="store_true", help='imprimir informacion de debug')

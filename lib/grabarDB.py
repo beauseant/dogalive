@@ -11,15 +11,13 @@ class grabarDB:
 	_name	= 'sqlite.db'
 	_con	= None
 	_dir	= ''
-	
-	def crearTablas ( self, db ):
-		db.crearTablaHosts()
-		db.crearTablaFechas()
-		db.crearTablaEscaneo()
+	_date	= None
 
-	def __init__ ( self, direct ):
+
+	def __init__ ( self, direct, date ):
 
 		self._dir = direct
+		self._date = date
 
 		try:
 		    self._con = lite.connect( self._name )            
@@ -27,16 +25,23 @@ class grabarDB:
 		except lite.Error, e:
 		    
 		    print "Error %s:" % e.args[0]
-		    sys.exit(1)    
+		    sys.exit(1)   
+ 
 
 	def __del__ ( self ):
 		if self._con:
 			self._con.close()
 
 
+	def crearTablas ( self , db):
+		db.crearTablaHosts()
+		db.crearTablaFechas()
+		db.crearTablaEscaneo()
+
+
+	#Crea tabla para almacenar los distintos hosts
 	def crearTablaHosts ( self ):
 		with self._con:  
-			#Creando tabla con los distintos hosts
 			cur = self._con.cursor()    
 			cur.execute("DROP TABLE IF EXISTS hosts")
 			sql_sen = '''CREATE TABLE hosts (
@@ -46,9 +51,10 @@ class grabarDB:
 			cur.execute(sql_sen)
 			self._con.commit()
 
+
+	#Crea tabla para introducir la fecha de los escaneos
 	def crearTablaFechas ( self ):
 		with self._con:  
-			#Creando tabla de fechas
 			cur = self._con.cursor()    
 			cur.execute("DROP TABLE IF EXISTS dates")
 			sql_sen = '''CREATE TABLE dates (
@@ -58,10 +64,10 @@ class grabarDB:
 			self._con.commit()
 
 
+	#Crea tabla con la fecha de realizacion de los distintos pings a los hosts
+	#Status 0=No responde 1=Activo
 	def crearTablaEscaneo ( self ):
 		with self._con:  
-			#Creando tabla con la fecha de realizacion de los distintos pings a los hosts
-			#Status 0=No responde 1=Activo
 			cur = self._con.cursor()    
 			cur.execute("DROP TABLE IF EXISTS scan")
 			sql_sen = '''CREATE TABLE scan (
@@ -75,51 +81,68 @@ class grabarDB:
 			cur.execute(sql_sen)
 			self._con.commit()
 
-
-	def insertarHosts( self, hosts ):
+	#Inserta un host
+	def insertarHost( self, ip, name ):
 		with self._con:    
-			#Insertando los hosts a escanear
 			cur = self._con.cursor()
-			for key,value in hosts.items():
-				cur.execute ("INSERT INTO hosts (id_host, ip, name) VALUES (NULL,?,?)", (key, value))
-			self._con.commit()
+			cur.execute ("SELECT id_host FROM hosts WHERE ip=?", (ip,))
+			h = cur.fetchone()[0]	
+			if not (h):
+				cur.execute ("INSERT INTO hosts (id_host, ip, name) VALUES (NULL,?,?)", (ip, name))
+				self._con.commit()
+				return cur.lastrowid
+			else:
+				return h
 
-	def insertarFecha ( self, date ):
+	#Inserta una fecha de escaneo
+	def insertarFecha ( self ):
 		with self._con:    
-			#Insertando la fecha del escaneo
 			cur = self._con.cursor()
-			cur.execute ("INSERT INTO dates (id_date, date) VALUES (NULL, ?)", (date))
-			self._con.commit()
+			cur.execute ("SELECT id_date FROM dates WHERE date=?", (self._date,))
+			d = cur.fetchone()[0]
+			if not (d):	
+				cur.execute ("INSERT INTO dates (id_date, date) VALUES (NULL, ?)", (self._date,))
+				self._con.commit()
+				return cur.lastrowid
+			else:
+				return d
 
+
+	#Inserta la informacion del escaneo
 	def insertarEscaneo ( self, id_host, id_date, status ):
 		with self._con:    
-			#Insertando los datos del escaneo de hosts
 			cur = self._con.cursor()
-			cur.execute ("INSERT INTO scan VALUES (?,?,?)", (id_host, id_date, status))
-			self._con.commit()
+			cur.execute ("SELECT * FROM scan WHERE id=? AND date=?", (id_host, id_date))
+			if not (cur.fetchone()):
+				cur.execute ("INSERT INTO scan VALUES (?,?,?)", (id_host, id_date, status))
+				self._con.commit()
+			else:
+				cur.execute ("UPDATE scan SET status=? ", (status,))
+				self._con.commit()				
 
-	
-if __name__ == "__main__":
-	parser	= argparse.ArgumentParser ( description= '' )
-	parser.add_argument('--d', action="store_true", help='imprimir informacion de debug')
+	#Muestra los hosts existentes
+	def mostrarHosts ( self ):
+		with self._con:    
+			cur = self._con.cursor()
+			cur.execute ("SELECT * FROM hosts")
+			hosts =	cur.fetchall()
+			print hosts
 
-	args	 =	parser.parse_args()
+	#Muestra las fechas en las que se realizaron escaneos
+	def mostrarFechas ( self ):
+		with self._con:    
+			cur = self._con.cursor()
+			cur.execute ("SELECT * FROM dates")
+			hosts =	cur.fetchall()
+			print hosts
 
-	if args.d:
-		logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
-	db = GrabarDB ('SQLitePrueba/')
-
-	hosts = {"192.168.149.19":"charran","192.168.149.20":"loro","192.168.149.21":"piquituerto"}
-
-	db.crearTablas ( db )
-	date = datetime.date.today()
-	db.insertarEscaneo (1,1,0)
-	db.mostrarHosts ()
-	
-	print 'Fin del proceso'
-
-
+	#Muestra los escaneos realizados
+	def mostrarEscaneos ( self ):
+		with self._con:    
+			cur = self._con.cursor()
+			cur.execute ("SELECT * FROM scan")
+			scans =	cur.fetchall()
+			print scans
 
 
 
