@@ -32,11 +32,11 @@ class grabarDB:
 		if self._con:
 			self._con.close()
 
-
-	def crearTablas ( self , db):
-		db.crearTablaHosts()
-		db.crearTablaFechas()
-		db.crearTablaEscaneo()
+	#Creacion de todas las tablas de la DB
+	def reiniciarDB ( self ):
+		self.crearTablaHosts()
+		self.crearTablaFechas()
+		self.crearTablaEscaneo()
 
 
 	#Crea tabla para almacenar los distintos hosts
@@ -86,26 +86,26 @@ class grabarDB:
 		with self._con:    
 			cur = self._con.cursor()
 			cur.execute ("SELECT id_host FROM hosts WHERE ip=?", (ip,))
-			h = cur.fetchone()[0]	
+			h = cur.fetchone()
 			if not (h):
 				cur.execute ("INSERT INTO hosts (id_host, ip, name) VALUES (NULL,?,?)", (ip, name))
 				self._con.commit()
 				return cur.lastrowid
 			else:
-				return h
+				return h[0]
 
 	#Inserta una fecha de escaneo
 	def insertarFecha ( self ):
 		with self._con:    
 			cur = self._con.cursor()
 			cur.execute ("SELECT id_date FROM dates WHERE date=?", (self._date,))
-			d = cur.fetchone()[0]
-			if not (d):	
+			d = cur.fetchone()
+			if not (d):
 				cur.execute ("INSERT INTO dates (id_date, date) VALUES (NULL, ?)", (self._date,))
 				self._con.commit()
 				return cur.lastrowid
 			else:
-				return d
+				return d[0]
 
 
 	#Inserta la informacion del escaneo
@@ -118,7 +118,7 @@ class grabarDB:
 				self._con.commit()
 			else:
 				cur.execute ("UPDATE scan SET status=? ", (status,))
-				self._con.commit()				
+				self._con.commit()	
 
 	#Muestra los hosts existentes
 	def mostrarHosts ( self ):
@@ -133,8 +133,8 @@ class grabarDB:
 		with self._con:    
 			cur = self._con.cursor()
 			cur.execute ("SELECT * FROM dates")
-			hosts =	cur.fetchall()
-			print hosts
+			dates =	cur.fetchall()
+			print dates
 
 	#Muestra los escaneos realizados
 	def mostrarEscaneos ( self ):
@@ -143,6 +143,7 @@ class grabarDB:
 			cur.execute ("SELECT * FROM scan")
 			scans =	cur.fetchall()
 			print scans
+
 
 
 

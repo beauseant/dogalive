@@ -37,10 +37,14 @@ def main( queue, log ):
 	#debemos pasarle, ademas la fecha
 	dateToday = datetime.date.today()
 	gdb = lib.grabarDB.grabarDB ('SQLitePrueba/', dateToday)
+	#gdb.reiniciarDB()
 	id_date = gdb.insertarFecha()
 	for ip,status in Salida.iteritems ():
-		id_host = gdb.insertarHost (ip , 'nombre')
-		gdb.insertarEscaneo(id_host,id_date, status)
+		try:
+			id_host = gdb.insertarHost (ip , 'nombre')
+			gdb.insertarEscaneo(id_host,id_date, status)
+		except Exception as e:
+			print 'No se ha podido registrar el log del host ' + ip
 
 	gdb.mostrarHosts()
 	gdb.mostrarFechas()
