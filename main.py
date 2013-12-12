@@ -38,6 +38,9 @@ def main( queue, log, args ):
 	#debemos pasarle, ademas la fecha
 	dateToday = datetime.date.today()
 	gdb = lib.grabarDB.grabarDB ('SQLitePrueba/', dateToday)
+
+	if args.create:
+		gdb.reiniciarDB()
 	#gdb.reiniciarDB()
 	id_date = gdb.insertarFecha()
 	for ip,status in Salida.iteritems ():
@@ -47,23 +50,22 @@ def main( queue, log, args ):
 		except Exception as e:
 			print 'No se ha podido registrar el log del host ' + ip
 
-
 	gdb.mostrarHosts()
 	gdb.mostrarFechas()
 	gdb.mostrarEscaneos()
-
+	
 
 if __name__ == "__main__":
 	log = 0
 	parser    = argparse.ArgumentParser ( description= 'ping con hilos' )
 	parser.add_argument('--d', action="store_true", help='imprimir informacion de debug')
+	parser.add_argument('--create', action="store_true", help='imprimir informacion de debug')
 	parser.add_argument('hilos', type=int, help='numero de hilos a lanzar')
 	parser.add_argument('segmento', help='segmento a analizar, ej: 192.168.149')
 	parser.add_argument('inicio', type=int, help='maquina inicial, ej:30 empezaria en [segmento].30')
 	parser.add_argument('final', type=int, help='maquina final, ej:200')
 
 	args     =    parser.parse_args()
-
 
 	if args.d:
 		logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
