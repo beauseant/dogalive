@@ -3,6 +3,8 @@ import time
 import argparse
 import logging
 import lib.threadping
+import datetime
+import lib.grabarDB
 
 
 def main( queue, log, args ):
@@ -30,23 +32,28 @@ def main( queue, log, args ):
 	for i in range( num_hilos ):
 		Salida.update ( t.getResultados () )
 
-	vivos 	= 0
-	muertos = 0
-
-	for k,v in Salida.iteritems ():
-		if ( v[1] == 1 ):
-			vivos 	+= 1
-		else:
-			muertos += 1
-
-		print 'El host %s (%s) estaba %s' % ( k ,v[0], v[1] )
 
 
-	print 'Lanzados %s hilos. Vivos:%s, muertos %s. Total:%s' % (num_hilos, vivos, muertos, vivos + muertos )
+	#Aqui debemos llamar a la libreria que se encarga de grabar el log de las operaciones
+	#debemos pasarle, ademas la fecha
+	dateToday = datetime.date.today()
+	gdb = lib.grabarDB.grabarDB ('SQLitePrueba/', dateToday)
+	#gdb.reiniciarDB()
+	id_date = gdb.insertarFecha()
+	for ip,status in Salida.iteritems ():
+		try:
+			id_host = gdb.insertarHost (ip , 'nombre')
+			gdb.insertarEscaneo(id_host,id_date, status)
+		except Exception as e:
+			print 'No se ha podido registrar el log del host ' + ip
+
+
+	gdb.mostrarHosts()
+	gdb.mostrarFechas()
+	gdb.mostrarEscaneos()
+
 
 if __name__ == "__main__":
-
-
 	log = 0
 	parser    = argparse.ArgumentParser ( description= 'ping con hilos' )
 	parser.add_argument('--d', action="store_true", help='imprimir informacion de debug')
