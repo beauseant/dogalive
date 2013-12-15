@@ -18,12 +18,13 @@ class grabarDB:
 
 		self._dir = direct
 		self._date = date
+		self._name = direct + self._name
 
 		try:
+   		    logging.debug ( "Abriendo la bd: %s" % self._name )
 		    self._con = lite.connect( self._name )            
 		    
-		except lite.Error, e:
-		    
+		except lite.Error, e:		    
 		    print "Error %s:" % e.args[0]
 		    sys.exit(1)   
  
@@ -34,6 +35,7 @@ class grabarDB:
 
 	#Creacion de todas las tablas de la DB
 	def reiniciarDB ( self ):
+		logging.debug ( "Creando desde cero la base de datos..." )	
 		self.crearTablaHosts()
 		self.crearTablaFechas()
 		self.crearTablaEscaneo()
@@ -59,6 +61,8 @@ class grabarDB:
 			cur.execute("DROP TABLE IF EXISTS dates")
 			sql_sen = '''CREATE TABLE dates (
 				id_date INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+				total INTEGER NOT NULL DEFAULT 0,
+				vivos INTEGER NOT NULL DEFAULT 0,
 				date DATE NOT NULL)'''
 			cur.execute(sql_sen)
 			self._con.commit()
@@ -71,12 +75,12 @@ class grabarDB:
 			cur = self._con.cursor()    
 			cur.execute("DROP TABLE IF EXISTS scan")
 			sql_sen = '''CREATE TABLE scan (
-				id INTEGER NOT NULL, 
-				date INTEGER NOT NULL, 
+				id_host INTEGER NOT NULL, 
+				id_date INTEGER NOT NULL, 
 				status INT(1) NOT NULL,
-				PRIMARY KEY (id,date),
-				FOREIGN KEY (id) REFERENCES hosts(id_host),
-				FOREIGN KEY (date) REFERENCES dates(id_date)
+				PRIMARY KEY (id_host,id_date),
+				FOREIGN KEY (id_host) REFERENCES hosts(id_host),
+				FOREIGN KEY (id_date) REFERENCES dates(id_date)
 				)'''   
 			cur.execute(sql_sen)
 			self._con.commit()
@@ -90,8 +94,10 @@ class grabarDB:
 			if not (h):
 				cur.execute ("INSERT INTO hosts (id_host, ip, name) VALUES (NULL,?,?)", (ip, name))
 				self._con.commit()
+				#logging.debug ( "Insert host: %s" % ( ip ) )
 				return cur.lastrowid
 			else:
+				#logging.debug ( "Load host: %s" % ( ip ) )
 				return h[0]
 
 	#Inserta una fecha de escaneo
@@ -112,13 +118,29 @@ class grabarDB:
 	def insertarEscaneo ( self, id_host, id_date, status ):
 		with self._con:    
 			cur = self._con.cursor()
-			cur.execute ("SELECT * FROM scan WHERE id=? AND date=?", (id_host, id_date))
-			if not (cur.fetchone()):
+			cur.execute ("SELECT * FROM scan WHERE id_host=? AND id_date=?", (id_host, id_date))
+
+			d = cur.fetchone()
+
+			if not (d):
+				#print ( "INSERT INTO scan VALUES (%s,%s,%s)" ) % (id_host, id_date, status)
 				cur.execute ("INSERT INTO scan VALUES (?,?,?)", (id_host, id_date, status))
 				self._con.commit()
 			else:
-				cur.execute ("UPDATE scan SET status=? ", (status,))
+				cur.execute ("UPDATE scan SET status=? WHERE id_host=? AND id_date=?", (status, id_host,id_date))
 				self._con.commit()	
+
+
+	#Actualiza los totales del escaneo (vivos y totales):
+	def actualizarTotales ( self, id_date, total, vivos ):
+		try:
+			with self._con:    
+				cur = self._con.cursor()
+				cur.execute ("UPDATE dates SET total=?,vivos=? WHERE id_date=? ", (total, vivos,id_date))
+				self._con.commit()
+		except Exception as e:
+			print e
+
 
 	#Muestra los hosts existentes
 	def mostrarHosts ( self ):

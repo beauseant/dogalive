@@ -37,22 +37,36 @@ def main( queue, log, args ):
 	#Aqui debemos llamar a la libreria que se encarga de grabar el log de las operaciones
 	#debemos pasarle, ademas la fecha
 	dateToday = datetime.date.today()
-	gdb = lib.grabarDB.grabarDB ('SQLitePrueba/', dateToday)
+	gdb = lib.grabarDB.grabarDB ('./', dateToday)
 
+
+	#Si hemos pasado create como parametro encontes borramos toda la base de datos y la creamos de nuevo:
 	if args.create:
 		gdb.reiniciarDB()
-	#gdb.reiniciarDB()
-	id_date = gdb.insertarFecha()
+
+
+	id_date 	= gdb.insertarFecha()
+
+	num_items 	= 0
+	num_vivos	= 0
+
 	for ip,status in Salida.iteritems ():
+		num_items += 1
 		try:
-			id_host = gdb.insertarHost (ip , 'nombre')
-			gdb.insertarEscaneo(id_host,id_date, status)
+			num_vivos += status[1]
+			id_host = gdb.insertarHost (ip , status[0])
+			gdb.insertarEscaneo(id_host,id_date, status[1])
 		except Exception as e:
 			print 'No se ha podido registrar el log del host ' + ip
 
-	gdb.mostrarHosts()
-	gdb.mostrarFechas()
-	gdb.mostrarEscaneos()
+	logging.debug ( "escaneados: %s. Vivos:%s" % ( num_items, num_vivos )	)
+
+	gdb.actualizarTotales ( id_date, num_items, num_vivos )
+
+
+	#gdb.mostrarHosts()
+	#gdb.mostrarFechas()
+	#gdb.mostrarEscaneos()
 	
 
 if __name__ == "__main__":

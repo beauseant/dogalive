@@ -43,6 +43,7 @@ class ThreadPing (threading.Thread):
 
 			nombre 	= self.__getname ( host )
 
+
 			estado.append ( nombre )
 
 			if ( self.__ping ( host ) == 0 ):
