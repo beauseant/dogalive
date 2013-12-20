@@ -1,5 +1,5 @@
 import Queue
-import time
+import timxxe
 import argparse
 import logging
 import lib.threadping
