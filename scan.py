@@ -4,7 +4,8 @@ import argparse
 import logging
 import lib.threadping
 import datetime
-import lib.grabarDB
+import lib.operacionesDB
+import xlwt
 
 
 def main( queue, log, args ):
@@ -37,7 +38,7 @@ def main( queue, log, args ):
 	#Aqui debemos llamar a la libreria que se encarga de grabar el log de las operaciones
 	#debemos pasarle, ademas la fecha
 	dateToday = datetime.date.today()
-	gdb = lib.grabarDB.grabarDB ('./', dateToday)
+	gdb = lib.operacionesDB.operacionesDB ('./', 'sqlite.db', dateToday)
 
 
 	#Si hemos pasado create como parametro encontes borramos toda la base de datos y la creamos de nuevo:
@@ -50,6 +51,8 @@ def main( queue, log, args ):
 	num_items 	= 0
 	num_vivos	= 0
 
+	#Mayor velocidad en las insercciones:
+	gdb.setTransaccion ( 0 )
 	for ip,status in Salida.iteritems ():
 		num_items += 1
 		try:
