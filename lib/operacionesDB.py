@@ -51,8 +51,10 @@ class operacionesDB:
 				ip VARCHAR(15) UNIQUE NOT NULL, 
 				name VARCHAR(30))'''
 			cur.execute(sql_sen)
+
 			sql_index = '''CREATE INDEX indice_ip on hosts (ip)'''
 			cur.execute(sql_index)
+
 			self._con.commit()
 
 
@@ -99,8 +101,10 @@ class operacionesDB:
 				#logging.debug ( "Insert host: %s" % ( ip ) )
 				return cur.lastrowid
 			else:
-
-
+				self._con.commit()
+				#logging.debug ( "Insert host: %s" % ( ip ) )
+				return cur.lastrowid
+			else:
 				#logging.debug ( "Load host: %s" % ( ip ) )
 				return h[0]
 
@@ -183,6 +187,7 @@ class operacionesDB:
 			cur.execute ("SELECT status FROM scan WHERE id_host =? LIMIT ?", (id_host, corte))
 			scans =	cur.fetchall()
 			return scans
+
 
 	def setTransaccion ( self, estado):
 		with self._con:    
