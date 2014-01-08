@@ -101,10 +101,6 @@ class operacionesDB:
 				#logging.debug ( "Insert host: %s" % ( ip ) )
 				return cur.lastrowid
 			else:
-				self._con.commit()
-				#logging.debug ( "Insert host: %s" % ( ip ) )
-				return cur.lastrowid
-			else:
 				#logging.debug ( "Load host: %s" % ( ip ) )
 				return h[0]
 

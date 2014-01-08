@@ -12,12 +12,13 @@ class ThreadPing (threading.Thread):
 	__queue		= Queue.Queue()
 	__resultado 	= {}
 
-	def __init__(self, queue, idth, log):
+	def __init__(self, queue,out_queue, idth, log):
 		threading.Thread.__init__(self)
 
 		self.__idth 	= idth
 		self.__queue 	= queue
 		self.__log 	= log
+		self.__oqueue	= out_queue
 
 
 	def __ping ( self, host ):
@@ -53,6 +54,9 @@ class ThreadPing (threading.Thread):
 				mensaje = 'el host %s NO estaba vivo' % ( host )
 				estado.append ( 0 )
 
+			Salida= {}
+			Salida [host] = estado
+			self.__oqueue.put ( Salida )
 			self.__resultado [ host ] = estado
 
 

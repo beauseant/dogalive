@@ -8,7 +8,7 @@ import lib.operacionesDB
 import xlwt
 
 
-def main( queue, log, args ):
+def main( queue, out_queue, log, args ):
 
 	num_hilos 	= args.hilos
 	inicio		= args.inicio
@@ -17,7 +17,7 @@ def main( queue, log, args ):
 	
 	#generamos los hilos que queremos y en cada uno pasamos la cola como instancia y el identificador:
 	for i in range( num_hilos ):
-		t = lib.threadping.ThreadPing (queue, i, log )
+		t = lib.threadping.ThreadPing (queue, out_queue, i, log )
 		t.setDaemon ( True )
 		t.start()
 
@@ -30,16 +30,19 @@ def main( queue, log, args ):
 
 	#Recogemos los datos de cada uno de los hilos:
 	Salida = {}
-	for i in range( num_hilos ):
-		Salida.update ( t.getResultados () )
+	#for i in range( num_hilos ):
+	#	Salida.update ( t.getResultados () )
 
-
+	for i in range ( out_queue.qsize () ):
+        	Salida.update( out_queue.get() )
 
 	#Aqui debemos llamar a la libreria que se encarga de grabar el log de las operaciones
 	#debemos pasarle, ademas la fecha
 	dateToday = datetime.date.today()
 	gdb = lib.operacionesDB.operacionesDB ('./', 'sqlite.db', dateToday)
 
+	escaneos =	gdb.recuperarEscaneos()
+	print escaneos
 
 	#Si hemos pasado create como parametro encontes borramos toda la base de datos y la creamos de nuevo:
 	if args.create:
@@ -89,11 +92,12 @@ if __name__ == "__main__":
 		log = 1
 
 
-	queue = Queue.Queue()
+	queue 		= Queue.Queue()
+	out_queue 	= Queue.Queue()
 
 	start = time.time()
 
-	main( queue, log, args )
+	main( queue, out_queue, log, args )
 
 
 	logging.debug ( "Elapsed Time: %s" % (time.time() - start) )
