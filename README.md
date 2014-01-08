@@ -63,12 +63,11 @@ Para cambiar la base de datos en la cual se están almacenando los distintos esc
         report.py --d sqlite.db reporte.xls 1
         Genera un reporte de los escaneos almacenados en la base de datos sqlite.db (que se encuentra en el mismo directorio) y lo exporta como reporte.xls. El reporte contiene el último escaneo realizado.
 
-	Ejemplo5:
+        Ejemplo5:
         report.py ../bases_datos/sqlite.db 15-02-13.xls 35
         Genera un reporte de los escaneos almacenados en la base de datos sqlite.db (que se encuentra en el directorio ../bases_datos/) y lo exporta como 15-02-13.xls. El reporte contiene los últimos 35 escaneos realizados.
         
 
-NOTA: Este programa no requiere de ficheros de configuración.
 
 
 
