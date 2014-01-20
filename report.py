@@ -33,6 +33,7 @@ class report:
 			wb = Workbook()
 			estilo_titulo 	= easyxf('font: bold on')
 			estilo_cab 	= easyxf('font: color white, bold on; pattern: pattern solid, pattern_fore_colour black, pattern_back_colour black')
+			estilo_vivo 	= easyxf('pattern: pattern solid, pattern_fore_colour lime, pattern_back_colour lime')
 			ws 		= wb.add_sheet('Resultados Pings',cell_overwrite_ok=True)
 
 			ws.write(0, 2, 'FICHERO EXCEL CON LOS RESULTADOS DE LOS PINGS A HOSTS', estilo_titulo)
@@ -41,7 +42,6 @@ class report:
 			ws.write(5, 0, 'IP', estilo_cab)
 			ws.write(5, 1, 'Nombre', estilo_cab)
 			ws.write(5, 2, 'Status (20 ultimos pings)', estilo_cab)
-			ws.write(5, corte+2, 'Vivos/Total', estilo_cab)
 
 			hosts = gdb.recuperarHosts()
 			cont_exc_host = 6;
@@ -53,7 +53,11 @@ class report:
 				cont_exc_status = 2
 
 				for escaneo in ultimos_escaneos:
-					ws.write (cont_exc_host, cont_exc_status, escaneo[0])
+
+					if (escaneo[0] == 1):
+						ws.write (cont_exc_host, cont_exc_status, escaneo[0], estilo_vivo)
+					else:
+						ws.write (cont_exc_host, cont_exc_status, escaneo[0])
 					cont_exc_status = cont_exc_status + 1
 
 				total_escaneos = gdb.recuperarEscaneosPorHost( host[0])
@@ -64,7 +68,8 @@ class report:
 						cont_vivos = cont_vivos + 1
 					cont_total = cont_total + 1
 
-				ws.write (cont_exc_host, corte+2, str(cont_vivos) + '/' + str(cont_total))
+				ws.write(5, len(ultimos_escaneos)+2, 'Vivos/Total', estilo_cab)
+				ws.write (cont_exc_host, len(ultimos_escaneos)+2, str(cont_vivos) + '/' + str(cont_total))
 				cont_exc_host = cont_exc_host + 1
 
 			wb.save(fichero_excel)
