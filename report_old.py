@@ -34,7 +34,6 @@ class report:
 			estilo_titulo 	= easyxf('font: bold on')
 			estilo_cab 	= easyxf('font: color white, bold on; pattern: pattern solid, pattern_fore_colour black, pattern_back_colour black')
 			estilo_vivo 	= easyxf('pattern: pattern solid, pattern_fore_colour lime, pattern_back_colour lime')
-			estilo_muerto 	= easyxf('pattern: pattern solid, pattern_fore_colour pale_blue, pattern_back_colour pale_blue')
 			estilo_vacio 	= easyxf('pattern: pattern solid, pattern_fore_colour light_orange, pattern_back_colour light_orange')
 			ws 		= wb.add_sheet('Resultados Pings',cell_overwrite_ok=True)
 
@@ -43,62 +42,55 @@ class report:
 
 			ws.write(5, 0, 'IP', estilo_cab)
 			ws.write(5, 1, 'Nombre', estilo_cab)
-
-
-			cont_exc_host = 6;
-			fechas_dict = {}
-			hosts_dict = {}
-
-			fechas = gdb.recuperarFechas()
-			for fecha in fechas:	
-				fechas_dict [fecha[0]] = fecha[3]
-
-			tamanyo = len(fechas)
+			ws.write(5, 2, 'Status (20 ultimos pings)', estilo_cab)
 
 			hosts = gdb.recuperarHosts()
+			cont_exc_host = 6;
+
+
+			#total_escaneos = "SELECT count(id_date) FROM dates;"
+
+
 			for host in hosts:
-				hosts_dict [host[0]] = host [1]
-
-
-			for h in hosts_dict.keys():
-				cont_vivos = 0
-				cont_total = 0
-				ws.write(cont_exc_host, 0, h)
-				ws.write(cont_exc_host, 1, hosts_dict[h])
-				total_escaneos = gdb.recuperarEscaneosPorHost( h )
+				ws.write(cont_exc_host, 0, host[1])
+				ws.write(cont_exc_host, 1, host[2])
+				ultimos_escaneos = gdb.recuperarUltimosEscaneosPorHost( host[0], corte )
 				cont_exc_status = 2
-				cont_corte = 0
 
+				print host
+				for escaneo in ultimos_escaneos:
+					print escaneo[0]
+				#for i=1 to total_escaneos
+				#	if existe ultimos_escaneos[i]
+				#		if = 1 grabamos un 1
+		
+				#		if = 0 grabamos un 0
+				#	else
+				#		grabamos un -1
+
+					if (escaneo[0] == 1):
+						ws.write (cont_exc_host, cont_exc_status, escaneo[0], estilo_vivo)
+					elif (escaneo[0] == 0):
+						ws.write (cont_exc_host, cont_exc_status, escaneo[0])
+					else:
+						ws.write (cont_exc_host, cont_exc_status, "X", estilo_vacio)
+
+					cont_exc_status = cont_exc_status + 1
+
+				total_escaneos = gdb.recuperarEscaneosPorHost( host[0])
 				cont_vivos = 0
 				cont_total = 0
 
 				for escaneo in total_escaneos:
-					if (escaneo[2] == 1):
+					if (escaneo[0] == 1):
 						cont_vivos = cont_vivos + 1
 					cont_total = cont_total + 1
 
-				
-				for f in fechas_dict.keys():
-					ws.write(5, cont_exc_status, fechas_dict[f], estilo_cab)
-					ws.write (cont_exc_host, cont_exc_status, "X", estilo_vacio)
-					for escaneo in total_escaneos:
-						if (f == escaneo[1]):
-							if (escaneo[2]==1):
-								ws.write (cont_exc_host, cont_exc_status, escaneo[2], estilo_vivo)
-							elif (escaneo[2]==0):
-								ws.write (cont_exc_host, cont_exc_status, escaneo[2], estilo_muerto)
-					cont_exc_status = cont_exc_status + 1	
-					cont_corte = cont_corte + 1
 
-					if (cont_corte >= corte):
-						break;
-
-	      			total_escaneos = gdb.recuperarEscaneosPorHost( host[0])
-
-				ws.write (cont_exc_host, cont_corte+2, str(cont_vivos) + '/' + str(cont_total))
+				ws.write (cont_exc_host, len(ultimos_escaneos)+2, str(cont_vivos) + '/' + str(cont_total))
 				cont_exc_host = cont_exc_host + 1
 
-			ws.write(5, cont_corte+2, 'Vivos/Total', estilo_cab)
+			ws.write(5, len(ultimos_escaneos)+2, 'Vivos/Total', estilo_cab)
 			wb.save(fichero_excel)
 	
 

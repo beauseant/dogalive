@@ -5,7 +5,7 @@ import logging
 import lib.threadping
 import datetime
 import lib.operacionesDB
-import xlwt
+from lib.xlwt import *
 
 
 def main( queue, out_queue, log, args ):
