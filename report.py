@@ -59,13 +59,15 @@ class report:
 			for host in hosts:
 				hosts_dict [host[0]] = host [1]
 
-
+			print fechas_dict.keys()
 			for h in hosts_dict.keys():
 				cont_vivos = 0
 				cont_total = 0
-				ws.write(cont_exc_host, 0, h)
-				ws.write(cont_exc_host, 1, hosts_dict[h])
-				total_escaneos = gdb.recuperarEscaneosPorHost( h )
+				ws.write(cont_exc_host, 0, hosts_dict[h])
+				host_nombre = gdb.recuperarHostPorId (h)
+				ws.write(cont_exc_host, 1, host_nombre[0][2])
+				total_escaneos = gdb.recuperarEscaneosPorHost( h)
+				ulti_escaneos = gdb.recuperarEscaneosPorHost( h )
 				cont_exc_status = 2
 				cont_corte = 0
 
@@ -77,11 +79,10 @@ class report:
 						cont_vivos = cont_vivos + 1
 					cont_total = cont_total + 1
 
-				
-				for f in fechas_dict.keys():
+				for f in reversed(fechas_dict.keys()):
 					ws.write(5, cont_exc_status, fechas_dict[f], estilo_cab)
 					ws.write (cont_exc_host, cont_exc_status, "X", estilo_vacio)
-					for escaneo in total_escaneos:
+					for escaneo in reversed(ulti_escaneos):
 						if (f == escaneo[1]):
 							if (escaneo[2]==1):
 								ws.write (cont_exc_host, cont_exc_status, escaneo[2], estilo_vivo)
@@ -92,8 +93,6 @@ class report:
 
 					if (cont_corte >= corte):
 						break;
-
-	      			total_escaneos = gdb.recuperarEscaneosPorHost( host[0])
 
 				ws.write (cont_exc_host, cont_corte+2, str(cont_vivos) + '/' + str(cont_total))
 				cont_exc_host = cont_exc_host + 1

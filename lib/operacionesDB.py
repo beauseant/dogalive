@@ -158,7 +158,7 @@ class operacionesDB:
 	def recuperarFechas ( self ):
 		with self._con:    
 			cur = self._con.cursor()
-			cur.execute ("SELECT * FROM dates ORDER BY id_date DESC")
+			cur.execute ("SELECT * FROM dates")
 			dates =	cur.fetchall()
 			return dates
 
@@ -167,6 +167,13 @@ class operacionesDB:
 		with self._con:    
 			cur = self._con.cursor()
 			cur.execute ("SELECT * FROM scan")
+			scans =	cur.fetchall()
+			return scans
+
+	def recuperaEscaneosPorHost ( self, id_host):
+		with self._con:    
+			cur = self._con.cursor()
+			cur.execute ("SELECT * FROM scan WHERE id_host =?", (id_host,))
 			scans =	cur.fetchall()
 			return scans
 
